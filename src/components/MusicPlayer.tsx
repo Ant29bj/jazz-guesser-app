@@ -5,8 +5,6 @@ import { Slider } from '@/components/ui/slider';
 import { 
   Play, 
   Pause, 
-  SkipBack, 
-  SkipForward, 
   Volume2, 
   VolumeX 
 } from 'lucide-react';
@@ -64,11 +62,6 @@ export const MusicPlayer = ({ tracks, albumName, artist, isRevealed }: MusicPlay
     setCurrentTime(0);
   };
 
-  const prevTrack = () => {
-    setCurrentTrack(prev => (prev - 1 + tracks.length) % tracks.length);
-    setCurrentTime(0);
-  };
-
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
@@ -89,19 +82,19 @@ export const MusicPlayer = ({ tracks, albumName, artist, isRevealed }: MusicPlay
   };
 
   return (
-    <Card className="gradient-card border-border/50 p-6 space-y-4">
+    <Card className="gradient-card border-border/50 p-4 space-y-3">
       {/* Track Info */}
-      <div className="text-center space-y-2">
-        <h4 className="font-semibold text-foreground">
+      <div className="text-center space-y-1">
+        <h4 className="font-medium text-foreground text-sm">
           {isRevealed ? tracks[currentTrack]?.title : `Track ${currentTrack + 1}`}
         </h4>
-        <p className="text-sm text-muted-foreground">
+        <p className="text-xs text-muted-foreground">
           {isRevealed ? `${albumName} • ${artist}` : "Mystery Album"}
         </p>
       </div>
 
       {/* Progress Bar */}
-      <div className="space-y-2">
+      <div className="space-y-1">
         <Slider
           value={[currentTime]}
           max={mockDuration}
@@ -115,84 +108,67 @@ export const MusicPlayer = ({ tracks, albumName, artist, isRevealed }: MusicPlay
         </div>
       </div>
 
-      {/* Controls */}
-      <div className="flex items-center justify-center gap-4">
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={prevTrack}
-          className="hover:text-primary transition-smooth"
-        >
-          <SkipBack className="h-4 w-4" />
-        </Button>
-
+      {/* Controls Row */}
+      <div className="flex items-center justify-between gap-4">
+        {/* Play Button */}
         <Button
           variant="default"
-          size="lg"
+          size="sm"
           onClick={togglePlay}
-          className="rounded-full h-12 w-12 shadow-glow transition-bounce hover:scale-105"
+          className="rounded-full h-10 w-10 shadow-glow transition-bounce hover:scale-105"
         >
           {isPlaying ? (
-            <Pause className="h-6 w-6" />
+            <Pause className="h-4 w-4" />
           ) : (
-            <Play className="h-6 w-6 ml-0.5" />
+            <Play className="h-4 w-4 ml-0.5" />
           )}
         </Button>
 
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={nextTrack}
-          className="hover:text-primary transition-smooth"
-        >
-          <SkipForward className="h-4 w-4" />
-        </Button>
-      </div>
-
-      {/* Volume Control */}
-      <div className="flex items-center gap-3">
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={toggleMute}
-          className="hover:text-primary transition-smooth"
-        >
-          {isMuted || volume === 0 ? (
-            <VolumeX className="h-4 w-4" />
-          ) : (
-            <Volume2 className="h-4 w-4" />
-          )}
-        </Button>
-        <Slider
-          value={[isMuted ? 0 : volume]}
-          max={100}
-          step={1}
-          onValueChange={handleVolumeChange}
-          className="flex-1"
-        />
-        <span className="text-xs text-muted-foreground w-8">
-          {isMuted ? 0 : volume}
-        </span>
+        {/* Volume Control */}
+        <div className="flex items-center gap-2 flex-1">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={toggleMute}
+            className="hover:text-primary transition-smooth h-8 w-8"
+          >
+            {isMuted || volume === 0 ? (
+              <VolumeX className="h-3 w-3" />
+            ) : (
+              <Volume2 className="h-3 w-3" />
+            )}
+          </Button>
+          <Slider
+            value={[isMuted ? 0 : volume]}
+            max={100}
+            step={1}
+            onValueChange={handleVolumeChange}
+            className="flex-1"
+          />
+          <span className="text-xs text-muted-foreground w-6 text-right">
+            {isMuted ? 0 : volume}
+          </span>
+        </div>
       </div>
 
       {/* Track List */}
       {isRevealed && (
-        <div className="space-y-2 pt-4 border-t border-border/50">
-          <h5 className="text-sm font-medium text-muted-foreground">Tracklist</h5>
-          <div className="space-y-1 max-h-32 overflow-y-auto">
+        <div className="space-y-2 pt-3 border-t border-border/50">
+          <h5 className="text-xs font-medium text-muted-foreground">Tracklist</h5>
+          <div className="space-y-1 max-h-28 overflow-y-auto">
             {tracks.map((track, index) => (
               <button
                 key={track.id}
                 onClick={() => setCurrentTrack(index)}
-                className={`w-full text-left p-2 rounded transition-smooth ${
+                className={`w-full text-left p-1.5 rounded text-xs transition-smooth ${
                   index === currentTrack
                     ? 'bg-primary/10 text-primary border border-primary/20'
                     : 'hover:bg-muted/50 text-muted-foreground hover:text-foreground'
                 }`}
               >
                 <div className="flex justify-between items-center">
-                  <span className="text-sm truncate">{track.title}</span>
-                  <span className="text-xs">{track.duration}</span>
+                  <span className="truncate">{track.title}</span>
+                  <span className="text-xs opacity-70">{track.duration}</span>
                 </div>
               </button>
             ))}
