@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react';
 import { AlbumCover } from '@/components/AlbumCover';
+import { MusicPlayer } from '@/components/MusicPlayer';
 import { ClueCard } from '@/components/ClueCard';
 import { GuessInput } from '@/components/GuessInput';
 import { ScoreDisplay } from '@/components/ScoreDisplay';
 import { Button } from '@/components/ui/button';
 import { Music, Calendar, Hash, Users, Disc, RotateCcw } from 'lucide-react';
 
-// Sample album data
+// Sample album data with tracks
 const albumData = {
   name: "Kind of Blue",
   artist: "Miles Davis",
@@ -14,7 +15,14 @@ const albumData = {
   tracks: 5,
   duration: "45:44",
   genre: "Modal Jazz",
-  label: "Columbia Records"
+  label: "Columbia Records",
+  trackList: [
+    { id: 1, title: "So What", duration: "9:22" },
+    { id: 2, title: "Freddie Freeloader", duration: "9:46" },
+    { id: 3, title: "Blue in Green", duration: "5:37" },
+    { id: 4, title: "All Blues", duration: "11:33" },
+    { id: 5, title: "Flamenco Sketches", duration: "9:26" }
+  ]
 };
 
 const Index = () => {
@@ -77,10 +85,20 @@ const Index = () => {
         </div>
 
         <div className="grid lg:grid-cols-2 gap-8 max-w-6xl mx-auto">
-          {/* Album Cover */}
+          {/* Album Cover and Music Player */}
           <div className="space-y-6">
             <div className="aspect-square max-w-md mx-auto">
               <AlbumCover isRevealed={isRevealed} albumName={albumData.name} />
+            </div>
+            
+            {/* Music Player */}
+            <div className="max-w-md mx-auto">
+              <MusicPlayer 
+                tracks={albumData.trackList}
+                albumName={albumData.name}
+                artist={albumData.artist}
+                isRevealed={isRevealed}
+              />
             </div>
             
             {isRevealed && (
