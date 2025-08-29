@@ -93,24 +93,8 @@ export const MusicPlayer = ({ tracks, albumName, artist, isRevealed }: MusicPlay
         </p>
       </div>
 
-      {/* Progress Bar */}
-      <div className="space-y-1">
-        <Slider
-          value={[currentTime]}
-          max={mockDuration}
-          step={1}
-          onValueChange={handleProgressChange}
-          className="w-full"
-        />
-        <div className="flex justify-between text-xs text-muted-foreground">
-          <span>{formatTime(currentTime)}</span>
-          <span>{formatTime(mockDuration)}</span>
-        </div>
-      </div>
-
-      {/* Controls Row - All at same level */}
-      <div className="flex items-center justify-center gap-6">
-        {/* Play Button */}
+      {/* Play Button */}
+      <div className="flex justify-center">
         <Button
           variant="default"
           size="sm"
@@ -123,36 +107,49 @@ export const MusicPlayer = ({ tracks, albumName, artist, isRevealed }: MusicPlay
             <Play className="h-4 w-4 ml-0.5" />
           )}
         </Button>
+      </div>
 
-        {/* Vertical Volume Control */}
-        <div className="flex flex-col items-center gap-2 h-16">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={toggleMute}
-            className="hover:text-primary transition-smooth h-6 w-6 p-0"
-          >
-            {isMuted || volume === 0 ? (
-              <VolumeX className="h-3 w-3" />
-            ) : (
-              <Volume2 className="h-3 w-3" />
-            )}
-          </Button>
+      {/* Progress Bar with Volume Control */}
+      <div className="space-y-1">
+        <div className="flex items-center gap-3">
+          <Slider
+            value={[currentTime]}
+            max={mockDuration}
+            step={1}
+            onValueChange={handleProgressChange}
+            className="flex-1"
+          />
           
-          <div className="h-12 flex items-center">
+          {/* Volume Control */}
+          <div className="flex items-center gap-1">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={toggleMute}
+              className="hover:text-primary transition-smooth h-6 w-6 p-0"
+            >
+              {isMuted || volume === 0 ? (
+                <VolumeX className="h-3 w-3" />
+              ) : (
+                <Volume2 className="h-3 w-3" />
+              )}
+            </Button>
             <Slider
               value={[isMuted ? 0 : volume]}
               max={100}
               step={1}
               onValueChange={handleVolumeChange}
-              orientation="vertical"
-              className="h-10"
+              className="w-16"
             />
+            <span className="text-xs text-muted-foreground w-6 text-center">
+              {isMuted ? 0 : volume}
+            </span>
           </div>
-          
-          <span className="text-xs text-muted-foreground text-center w-8">
-            {isMuted ? 0 : volume}
-          </span>
+        </div>
+        
+        <div className="flex justify-between text-xs text-muted-foreground">
+          <span>{formatTime(currentTime)}</span>
+          <span>{formatTime(mockDuration)}</span>
         </div>
       </div>
 
