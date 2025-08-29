@@ -93,25 +93,76 @@ export const MusicPlayer = ({ tracks, albumName, artist, isRevealed }: MusicPlay
         </p>
       </div>
 
-      {/* Play Button */}
-      <div className="flex justify-center">
-        <Button
-          variant="default"
-          size="sm"
-          onClick={togglePlay}
-          className="rounded-full h-10 w-10 shadow-glow transition-bounce hover:scale-105"
-        >
-          {isPlaying ? (
-            <Pause className="h-4 w-4" />
-          ) : (
-            <Play className="h-4 w-4 ml-0.5" />
-          )}
-        </Button>
+      {/* Main Controls Row */}
+      <div className="flex items-center justify-between">
+        {/* Left side - Transport Controls */}
+        <div className="flex items-center gap-2">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setCurrentTrack(prev => (prev - 1 + tracks.length) % tracks.length)}
+            className="h-8 w-8 p-0 hover:text-primary transition-smooth"
+          >
+            <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M7 6v12l-3-3 3-3V6zm3 6l8-6v12l-8-6z"/>
+            </svg>
+          </Button>
+          
+          <Button
+            variant="default"
+            size="sm"
+            onClick={togglePlay}
+            className="rounded-full h-9 w-9 shadow-glow transition-bounce hover:scale-105"
+          >
+            {isPlaying ? (
+              <Pause className="h-4 w-4" />
+            ) : (
+              <Play className="h-4 w-4 ml-0.5" />
+            )}
+          </Button>
+          
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={nextTrack}
+            className="h-8 w-8 p-0 hover:text-primary transition-smooth"
+          >
+            <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M17 18V6l3 3-3 3v6zm-7-6L2 6v12l8-6z"/>
+            </svg>
+          </Button>
+        </div>
+
+        {/* Right side - Volume Control */}
+        <div className="flex items-center gap-2">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={toggleMute}
+            className="hover:text-primary transition-smooth h-6 w-6 p-0"
+          >
+            {isMuted || volume === 0 ? (
+              <VolumeX className="h-3 w-3" />
+            ) : (
+              <Volume2 className="h-3 w-3" />
+            )}
+          </Button>
+          <Slider
+            value={[isMuted ? 0 : volume]}
+            max={100}
+            step={1}
+            onValueChange={handleVolumeChange}
+            className="w-20"
+          />
+        </div>
       </div>
 
-      {/* Progress Bar with Volume Control */}
+      {/* Progress Bar */}
       <div className="space-y-1">
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
+          <span className="text-xs text-muted-foreground w-10 text-left">
+            {formatTime(currentTime)}
+          </span>
           <Slider
             value={[currentTime]}
             max={mockDuration}
@@ -119,37 +170,9 @@ export const MusicPlayer = ({ tracks, albumName, artist, isRevealed }: MusicPlay
             onValueChange={handleProgressChange}
             className="flex-1"
           />
-          
-          {/* Volume Control */}
-          <div className="flex items-center gap-1">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={toggleMute}
-              className="hover:text-primary transition-smooth h-6 w-6 p-0"
-            >
-              {isMuted || volume === 0 ? (
-                <VolumeX className="h-3 w-3" />
-              ) : (
-                <Volume2 className="h-3 w-3" />
-              )}
-            </Button>
-            <Slider
-              value={[isMuted ? 0 : volume]}
-              max={100}
-              step={1}
-              onValueChange={handleVolumeChange}
-              className="w-16"
-            />
-            <span className="text-xs text-muted-foreground w-6 text-center">
-              {isMuted ? 0 : volume}
-            </span>
-          </div>
-        </div>
-        
-        <div className="flex justify-between text-xs text-muted-foreground">
-          <span>{formatTime(currentTime)}</span>
-          <span>{formatTime(mockDuration)}</span>
+          <span className="text-xs text-muted-foreground w-10 text-right">
+            {formatTime(mockDuration)}
+          </span>
         </div>
       </div>
 
