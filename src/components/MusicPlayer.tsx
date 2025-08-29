@@ -31,6 +31,7 @@ export const MusicPlayer = ({ tracks, albumName, artist, isRevealed }: MusicPlay
   const [duration, setDuration] = useState(0);
   const [volume, setVolume] = useState(75);
   const [isMuted, setIsMuted] = useState(false);
+  const [showVolumeSlider, setShowVolumeSlider] = useState(false);
   const audioRef = useRef<HTMLAudioElement>(null);
 
   // Mock duration for demo (since we don't have real audio files)
@@ -68,8 +69,8 @@ export const MusicPlayer = ({ tracks, albumName, artist, isRevealed }: MusicPlay
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
-  const toggleMute = () => {
-    setIsMuted(!isMuted);
+  const toggleVolumeSlider = () => {
+    setShowVolumeSlider(!showVolumeSlider);
   };
 
   const handleProgressChange = (value: number[]) => {
@@ -152,11 +153,24 @@ export const MusicPlayer = ({ tracks, albumName, artist, isRevealed }: MusicPlay
           </span>
           
           {/* Volume Control */}
-          <div className="flex flex-col items-center gap-1 ml-4 h-16">
+          <div className="relative flex items-end ml-4">
+            {showVolumeSlider && (
+              <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 bg-background border border-border rounded-lg p-2 shadow-lg">
+                <Slider
+                  value={[isMuted ? 0 : volume]}
+                  max={100}
+                  step={1}
+                  onValueChange={handleVolumeChange}
+                  orientation="vertical"
+                  className="h-16"
+                />
+              </div>
+            )}
+            
             <Button
               variant="ghost"
               size="sm"
-              onClick={toggleMute}
+              onClick={toggleVolumeSlider}
               className="hover:text-primary transition-smooth h-6 w-6 p-0"
             >
               {isMuted || volume === 0 ? (
@@ -165,17 +179,6 @@ export const MusicPlayer = ({ tracks, albumName, artist, isRevealed }: MusicPlay
                 <Volume2 className="h-3 w-3" />
               )}
             </Button>
-            
-            <div className="h-12 flex items-center">
-              <Slider
-                value={[isMuted ? 0 : volume]}
-                max={100}
-                step={1}
-                onValueChange={handleVolumeChange}
-                orientation="vertical"
-                className="h-10"
-              />
-            </div>
           </div>
         </div>
       </div>
