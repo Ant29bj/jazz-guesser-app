@@ -94,10 +94,7 @@ export const MusicPlayer = ({ tracks, albumName, artist, isRevealed }: MusicPlay
       </div>
 
       {/* Main Controls Row */}
-      <div className="flex items-center justify-between">
-        {/* Left spacer */}
-        <div className="flex-1"></div>
-        
+      <div className="flex items-center justify-center">
         {/* Center - Transport Controls */}
         <div className="flex items-center gap-2">
           <Button
@@ -135,32 +132,9 @@ export const MusicPlayer = ({ tracks, albumName, artist, isRevealed }: MusicPlay
             </svg>
           </Button>
         </div>
-
-        {/* Right side - Volume Control */}
-        <div className="flex items-center gap-2 flex-1 justify-end">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={toggleMute}
-            className="hover:text-primary transition-smooth h-6 w-6 p-0"
-          >
-            {isMuted || volume === 0 ? (
-              <VolumeX className="h-3 w-3" />
-            ) : (
-              <Volume2 className="h-3 w-3" />
-            )}
-          </Button>
-          <Slider
-            value={[isMuted ? 0 : volume]}
-            max={100}
-            step={1}
-            onValueChange={handleVolumeChange}
-            className="w-20"
-          />
-        </div>
       </div>
 
-      {/* Progress Bar */}
+      {/* Progress Bar with Volume */}
       <div className="space-y-1">
         <div className="flex items-center gap-2">
           <span className="text-xs text-muted-foreground w-10 text-left">
@@ -176,6 +150,29 @@ export const MusicPlayer = ({ tracks, albumName, artist, isRevealed }: MusicPlay
           <span className="text-xs text-muted-foreground w-10 text-right">
             {formatTime(mockDuration)}
           </span>
+          
+          {/* Volume Control */}
+          <div className="flex items-center gap-2 ml-4">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={toggleMute}
+              className="hover:text-primary transition-smooth h-6 w-6 p-0"
+            >
+              {isMuted || volume === 0 ? (
+                <VolumeX className="h-3 w-3" />
+              ) : (
+                <Volume2 className="h-3 w-3" />
+              )}
+            </Button>
+            <Slider
+              value={[isMuted ? 0 : volume]}
+              max={100}
+              step={1}
+              onValueChange={handleVolumeChange}
+              className="w-20"
+            />
+          </div>
         </div>
       </div>
 
