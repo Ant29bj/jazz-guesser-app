@@ -152,7 +152,7 @@ export const MusicPlayer = ({ tracks, albumName, artist, isRevealed }: MusicPlay
           </span>
           
           {/* Volume Control */}
-          <div className="flex items-center gap-2 ml-4">
+          <div className="flex flex-col items-center gap-1 ml-4 h-16">
             <Button
               variant="ghost"
               size="sm"
@@ -165,13 +165,17 @@ export const MusicPlayer = ({ tracks, albumName, artist, isRevealed }: MusicPlay
                 <Volume2 className="h-3 w-3" />
               )}
             </Button>
-            <Slider
-              value={[isMuted ? 0 : volume]}
-              max={100}
-              step={1}
-              onValueChange={handleVolumeChange}
-              className="w-20"
-            />
+            
+            <div className="h-12 flex items-center">
+              <Slider
+                value={[isMuted ? 0 : volume]}
+                max={100}
+                step={1}
+                onValueChange={handleVolumeChange}
+                orientation="vertical"
+                className="h-10"
+              />
+            </div>
           </div>
         </div>
       </div>
