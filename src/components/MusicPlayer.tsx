@@ -95,7 +95,10 @@ export const MusicPlayer = ({ tracks, albumName, artist, isRevealed }: MusicPlay
 
       {/* Main Controls Row */}
       <div className="flex items-center justify-between">
-        {/* Left side - Transport Controls */}
+        {/* Left spacer */}
+        <div className="flex-1"></div>
+        
+        {/* Center - Transport Controls */}
         <div className="flex items-center gap-2">
           <Button
             variant="ghost"
@@ -134,7 +137,7 @@ export const MusicPlayer = ({ tracks, albumName, artist, isRevealed }: MusicPlay
         </div>
 
         {/* Right side - Volume Control */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-1 justify-end">
           <Button
             variant="ghost"
             size="sm"
