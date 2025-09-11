@@ -10,7 +10,7 @@ import { Music, Calendar, Hash, Users, Disc, RotateCcw } from 'lucide-react';
 // Sample album data with tracks
 const albumData = {
   name: "Kind of Blue",
-  artist: "Miles Davis",
+  artists: ["Miles Davis", "John Coltrane", "Cannonball Adderley", "Bill Evans", "Paul Chambers", "Jimmy Cobb"],
   year: 1959,
   tracks: 5,
   duration: "45:44",
@@ -96,7 +96,7 @@ const Index = () => {
               <MusicPlayer 
                 tracks={albumData.trackList}
                 albumName={albumData.name}
-                artist={albumData.artist}
+                artist={albumData.artists[0]}
                 isRevealed={isRevealed}
               />
             </div>
@@ -104,7 +104,7 @@ const Index = () => {
             {isRevealed && (
               <div className="text-center space-y-4">
                 <h2 className="text-2xl font-bold text-primary">"{albumData.name}"</h2>
-                <p className="text-muted-foreground">by {albumData.artist}</p>
+                <p className="text-muted-foreground">by {albumData.artists.join(", ")}</p>
                 <Button onClick={resetGame} variant="secondary" className="transition-bounce">
                   <RotateCcw className="h-4 w-4 mr-2" />
                   Play Again
@@ -118,11 +118,26 @@ const Index = () => {
             <div>
               <h3 className="text-xl font-semibold mb-4 text-foreground">Album Clues</h3>
               <div className="grid gap-4">
-                <ClueCard 
-                  label="Artist" 
-                  value={albumData.artist}
-                  icon={<Users className="h-5 w-5" />}
-                />
+                <div className="gradient-card border-border/50 hover:border-primary/30 transition-smooth p-4">
+                  <div className="flex items-start gap-3">
+                    <div className="text-primary mt-1">
+                      <Users className="h-5 w-5" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-muted-foreground text-sm font-medium mb-2">Artists</p>
+                      <div className="flex flex-wrap gap-2">
+                        {albumData.artists.map((artist, index) => (
+                          <span
+                            key={index}
+                            className="bg-primary/10 text-primary px-3 py-1 rounded-full text-sm font-medium border border-primary/20"
+                          >
+                            {artist}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
                 <ClueCard 
                   label="Release Year" 
                   value={albumData.year}
