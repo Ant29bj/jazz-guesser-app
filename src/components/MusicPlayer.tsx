@@ -162,7 +162,7 @@ export const MusicPlayer = ({ tracks, albumName, artist, isRevealed }: MusicPlay
                   step={1}
                   onValueChange={handleVolumeChange}
                   orientation="vertical"
-                  className="h-16 [&>span:last-child]:h-3 [&>span:last-child]:w-3"
+                  className="h-16 [&>span[role=slider]]:h-3 [&>span[role=slider]]:w-3"
                 />
               </div>
             )}
