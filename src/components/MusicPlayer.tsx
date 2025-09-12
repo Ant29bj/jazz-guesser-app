@@ -2,70 +2,131 @@ import { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Slider } from '@/components/ui/slider';
-import { 
-  Play, 
-  Pause, 
-  Volume2, 
-  VolumeX 
+import {
+  Play,
+  Pause,
+  Volume2,
+  VolumeX,
+  ChevronRight,
+  ChevronLeft,
+  Loader2
 } from 'lucide-react';
+import { Track } from '@/types/game-request';
+import { Accordion, AccordionContent } from './ui/accordion';
+import { AccordionItem } from '@radix-ui/react-accordion';
+import { useQuery } from '@tanstack/react-query';
+import { fetchTracPreview } from '@/api/game/fetch-track.action';
 
-interface Track {
-  id: number;
-  title: string;
-  duration: string;
-  // In a real app, this would be the audio file URL
-  audioUrl?: string;
-}
 
 interface MusicPlayerProps {
   tracks: Track[];
   albumName: string;
-  artist: string;
   isRevealed: boolean;
 }
 
-export const MusicPlayer = ({ tracks, albumName, artist, isRevealed }: MusicPlayerProps) => {
+export const MusicPlayer = ({ tracks, albumName, isRevealed }: MusicPlayerProps) => {
   const [isPlaying, setIsPlaying] = useState(false);
-  const [currentTrack, setCurrentTrack] = useState(0);
+  const [currentTrack, setCurrentTrack] = useState(tracks[0]);
+  const [playLisStatus, setPlayLisStatus] = useState<string>('');
   const [currentTime, setCurrentTime] = useState(0);
-  const [duration, setDuration] = useState(0);
+  const [audioDuration, setAudioDuration] = useState(0);
   const [volume, setVolume] = useState(75);
   const [isMuted, setIsMuted] = useState(false);
   const [showVolumeSlider, setShowVolumeSlider] = useState(false);
   const audioRef = useRef<HTMLAudioElement>(null);
 
-  // Mock duration for demo (since we don't have real audio files)
-  const mockDuration = 180; // 3 minutes
+  const { data: currentTrackPreview, isLoading } = useQuery({
+    queryKey: ['track', { trackId: currentTrack.dreezer_id }],
+    queryFn: () => fetchTracPreview(currentTrack.dreezer_id),
+    staleTime: 1000 * 60 * 30, // half an ahour
+    retryDelay: 1000 * 60
+  });
 
   useEffect(() => {
-    // Simulate audio progress for demo
-    let interval: NodeJS.Timeout;
-    if (isPlaying) {
-      interval = setInterval(() => {
-        setCurrentTime(prev => {
-          if (prev >= mockDuration) {
-            setIsPlaying(false);
-            return 0;
-          }
-          return prev + 1;
-        });
-      }, 1000);
+    if (!audioRef.current) return;
+
+    audioRef.current.pause();
+    audioRef.current.load();
+  }, [currentTrack]);
+
+  useEffect(() => {
+    if (!audioRef.current) return;
+
+    if (isLoading) {
+      setIsPlaying(false);
+      audioRef.current.pause();
+      return;
     }
-    return () => clearInterval(interval);
-  }, [isPlaying, mockDuration]);
+
+    setIsPlaying(true);
+    audioRef.current.play();
+  }, [isLoading]);
+
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio) return;
+
+    // Actualizar tiempo actual durante reproducción
+    const handleTimeUpdate = () => {
+      setCurrentTime(audio.currentTime);
+    };
+
+    // Obtener duración real cuando se carga el metadata
+    const handleLoadedMetadata = () => {
+      setAudioDuration(audio.duration);
+    };
+
+    const handleEnded = () => {
+      setIsPlaying(false);
+      setCurrentTime(0);
+    };
+
+    audio.addEventListener('timeupdate', handleTimeUpdate);
+    audio.addEventListener('loadedmetadata', handleLoadedMetadata);
+    audio.addEventListener('ended', handleEnded);
+
+    return () => {
+      audio.removeEventListener('timeupdate', handleTimeUpdate);
+      audio.removeEventListener('loadedmetadata', handleLoadedMetadata);
+      audio.removeEventListener('ended', handleEnded);
+    };
+  }, [currentTrackPreview]);
+
 
   const togglePlay = () => {
-    setIsPlaying(!isPlaying);
+    if (!audioRef.current) return;
+
+    setIsPlaying((prev) => {
+      const newState = !prev;
+      if (newState) {
+        audioRef.current.play().catch(error => {
+          console.log("Error al reproducir:", error);
+          return prev;
+        });
+      } else {
+        audioRef.current?.pause();
+      }
+
+      return newState;
+    });
   };
 
-  const nextTrack = () => {
-    setCurrentTrack(prev => (prev + 1) % tracks.length);
-    setCurrentTime(0);
-  };
+  const handleChangeTrack = (direcction: number) => {
+    let index = tracks.findIndex(({ id }) => id === currentTrack.id);
+    index = index + direcction;
+    if (index < 0) {
+      index = tracks.length - 1;
+    } else if (index > tracks.length - 1) {
+      index = 0;
+    }
+
+    setCurrentTrack(tracks[index]);
+  }
+
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
+    const secs = Math.floor(seconds % 60);
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
@@ -73,24 +134,37 @@ export const MusicPlayer = ({ tracks, albumName, artist, isRevealed }: MusicPlay
     setShowVolumeSlider(!showVolumeSlider);
   };
 
-  const handleProgressChange = (value: number[]) => {
-    setCurrentTime(value[0]);
-  };
+
 
   const handleVolumeChange = (value: number[]) => {
     setVolume(value[0]);
     setIsMuted(false);
   };
 
+  const handleProgressChange = (value: number[]) => {
+    if (audioRef.current) {
+      const newTime = value[0];
+      setCurrentTime(newTime);
+      audioRef.current.currentTime = newTime;
+    }
+  };
+
   return (
     <Card className="gradient-card border-border/50 p-4 space-y-3">
       {/* Track Info */}
+      {
+        !isLoading && (
+          <audio ref={audioRef} >
+            <source src={currentTrackPreview?.preview} type='audio/mpeg' />
+          </audio>
+        )
+      }
       <div className="text-center space-y-1">
         <h4 className="font-medium text-foreground text-sm">
-          {isRevealed ? tracks[currentTrack]?.title : `Track ${currentTrack + 1}`}
+          {isRevealed ? currentTrack.title : `Track ${currentTrack.title}`}
         </h4>
         <p className="text-xs text-muted-foreground">
-          {isRevealed ? `${albumName} • ${artist}` : "Mystery Album"}
+          {`${albumName}`}
         </p>
       </div>
 
@@ -101,36 +175,37 @@ export const MusicPlayer = ({ tracks, albumName, artist, isRevealed }: MusicPlay
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => setCurrentTrack(prev => (prev - 1 + tracks.length) % tracks.length)}
+            onClick={() => handleChangeTrack(-1)}
             className="h-8 w-8 p-0 hover:text-primary transition-smooth"
           >
-            <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M7 6v12l-3-3 3-3V6zm3 6l8-6v12l-8-6z"/>
-            </svg>
+            <ChevronLeft className='scale-150' />
           </Button>
-          
+
           <Button
             variant="default"
             size="sm"
+            disabled={isLoading}
             onClick={togglePlay}
             className="rounded-full h-9 w-9 shadow-glow transition-bounce hover:scale-105"
           >
-            {isPlaying ? (
+            {isLoading ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : isPlaying ? (
               <Pause className="h-4 w-4" />
+
             ) : (
               <Play className="h-4 w-4 ml-0.5" />
             )}
+
           </Button>
-          
+
           <Button
             variant="ghost"
             size="sm"
-            onClick={nextTrack}
             className="h-8 w-8 p-0 hover:text-primary transition-smooth"
+            onClick={() => handleChangeTrack(1)}
           >
-            <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M17 18V6l3 3-3 3v6zm-7-6L2 6v12l8-6z"/>
-            </svg>
+            <ChevronRight className='scale-150' />
           </Button>
         </div>
       </div>
@@ -143,21 +218,21 @@ export const MusicPlayer = ({ tracks, albumName, artist, isRevealed }: MusicPlay
           </span>
           <Slider
             value={[currentTime]}
-            max={mockDuration}
+            max={audioDuration}
             step={1}
             onValueChange={handleProgressChange}
             className="flex-1"
           />
           <span className="text-xs text-muted-foreground w-10 text-right">
-            {formatTime(mockDuration)}
+            {formatTime(audioDuration)}
           </span>
-          
+
           {/* Volume Control */}
-          <div className="relative flex items-end ml-4">
+          <div className="flex flex-col ml-4">
             {showVolumeSlider && (
-              <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 bg-background border border-border rounded-lg p-2 shadow-lg">
+              <div className="bg-background w-4 rounded-md">
                 <Slider
-                  value={[isMuted ? 0 : volume]}
+                  value={[volume]}
                   max={100}
                   step={1}
                   onValueChange={handleVolumeChange}
@@ -166,7 +241,7 @@ export const MusicPlayer = ({ tracks, albumName, artist, isRevealed }: MusicPlay
                 />
               </div>
             )}
-            
+
             <Button
               variant="ghost"
               size="sm"
@@ -183,30 +258,44 @@ export const MusicPlayer = ({ tracks, albumName, artist, isRevealed }: MusicPlay
         </div>
       </div>
 
-      {/* Track List */}
-      {isRevealed && (
-        <div className="space-y-2 pt-3 border-t border-border/50">
-          <h5 className="text-xs font-medium text-muted-foreground">Tracklist</h5>
-          <div className="space-y-1 max-h-28 overflow-y-auto">
-            {tracks.map((track, index) => (
-              <button
-                key={track.id}
-                onClick={() => setCurrentTrack(index)}
-                className={`w-full text-left p-1.5 rounded text-xs transition-smooth ${
-                  index === currentTrack
+
+      <Accordion className='flex flex-col' type='single' value={playLisStatus}>
+        <Button
+          variant='link'
+          className="text-sm"
+          onClick={() => setPlayLisStatus((prev) => {
+            if (prev === 'playlist') {
+              return '';
+            }
+
+            return 'playlist';
+          })}
+        >
+          Tracklist
+        </Button>
+        <AccordionItem value='playlist'>
+          <AccordionContent>
+            <div className="space-y-1 max-h-28 overflow-y-auto scrollbar-thin scrollbar-thumb-primary/30 scrollbar-track-transparent 
+                hover:scrollbar-thumb-primary/50">
+              {tracks.map((track, index) => (
+                <button
+                  key={track.id}
+                  onClick={() => setCurrentTrack(track)}
+                  className={`w-full text-left p-1.5 rounded text-xs transition-smooth ${track.id === currentTrack.id
                     ? 'bg-primary/10 text-primary border border-primary/20'
                     : 'hover:bg-muted/50 text-muted-foreground hover:text-foreground'
-                }`}
-              >
-                <div className="flex justify-between items-center">
-                  <span className="truncate">{track.title}</span>
-                  <span className="text-xs opacity-70">{track.duration}</span>
-                </div>
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
+                    }`}
+                >
+                  <div className="flex justify-between items-center">
+                    <span className="truncate">{track.title}</span>
+                    <span className="text-xs opacity-70">{formatTime(track.duration)}</span>
+                  </div>
+                </button>
+              ))}
+            </div>
+          </AccordionContent>
+        </AccordionItem>
+      </Accordion>
     </Card>
   );
 };
