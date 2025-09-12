@@ -1,17 +1,12 @@
-import { useState, useEffect, useMemo, useReducer } from 'react';
-import { AlbumCover } from '@/components/AlbumCover';
+import { useState } from 'react';
 import { MusicPlayer } from '@/components/MusicPlayer';
 import { ClueCard } from '@/components/ClueCard';
 import { GuessInput } from '@/components/GuessInput';
 import { ScoreDisplay } from '@/components/ScoreDisplay';
-import { Button } from '@/components/ui/button';
-import { Music, Calendar, Hash, Users, Disc, RotateCcw, Captions } from 'lucide-react';
+import { Music, Calendar, Hash, Users, Captions } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { fetchRandomAlbumAction } from '@/api/game/fetch-random-album.action';
 import { useFormatSeconds } from '@/hooks/use-formatSeconds';
-import { gameReducer } from '@/reducer/game.reducer';
-import { GameResponse } from '@/types/game-request';
-import { useCustomGameReducer } from '@/hooks/use-customReducer';
 
 
 const JazzGuessApp = () => {
