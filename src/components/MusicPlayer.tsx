@@ -17,7 +17,6 @@ import { AccordionItem } from '@radix-ui/react-accordion';
 import { useQuery } from '@tanstack/react-query';
 import { fetchTracPreview } from '@/api/game/fetch-track.action';
 
-
 interface MusicPlayerProps {
   tracks: Track[];
   albumName: string;
@@ -34,51 +33,62 @@ export const MusicPlayer = ({ tracks, albumName, isRevealed }: MusicPlayerProps)
   const [isMuted, setIsMuted] = useState(false);
   const [showVolumeSlider, setShowVolumeSlider] = useState(false);
   const audioRef = useRef<HTMLAudioElement>(null);
+  const wasPlayingRef = useRef(false); // ← Nueva referencia para trackear el estado anterior
 
   const { data: currentTrackPreview, isLoading } = useQuery({
     queryKey: ['track', { trackId: currentTrack.dreezer_id }],
     queryFn: () => fetchTracPreview(currentTrack.dreezer_id),
-    staleTime: 1000 * 60 * 30, // half an ahour
+    staleTime: 1000 * 60 * 30,
     retryDelay: 1000 * 60
   });
 
+  // Efecto para cambiar de pista
   useEffect(() => {
-    if (!audioRef.current) return;
+    if (!audioRef.current || !currentTrackPreview?.preview) return;
+
+    // Guardar el estado de reproducción actual antes de cambiar
+    wasPlayingRef.current = isPlaying;
 
     audioRef.current.pause();
     audioRef.current.load();
-  }, [currentTrack]);
+    setCurrentTime(0);
 
-  useEffect(() => {
-    if (!audioRef.current) return;
+    const handleLoadedData = () => {
+      if (wasPlayingRef.current) {
+        audioRef.current?.play()
+          .then(() => setIsPlaying(true))
+          .catch(error => {
+            console.log("Error al reproducir automáticamente:", error);
+            setIsPlaying(false);
+          });
+      }
+    };
 
-    if (isLoading) {
-      setIsPlaying(false);
-      audioRef.current.pause();
-      return;
-    }
+    audioRef.current.addEventListener('loadeddata', handleLoadedData);
 
-    setIsPlaying(true);
-    audioRef.current.play();
-  }, [isLoading]);
+    return () => {
+      audioRef.current?.removeEventListener('loadeddata', handleLoadedData);
+    };
+  }, [currentTrack, currentTrackPreview]);
 
+  // Efecto para eventos del audio
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio) return;
 
-    // Actualizar tiempo actual durante reproducción
     const handleTimeUpdate = () => {
       setCurrentTime(audio.currentTime);
     };
 
-    // Obtener duración real cuando se carga el metadata
     const handleLoadedMetadata = () => {
-      setAudioDuration(audio.duration);
+      if (!isNaN(audio.duration) && isFinite(audio.duration)) {
+        setAudioDuration(audio.duration);
+      }
     };
 
     const handleEnded = () => {
-      setIsPlaying(false);
       setCurrentTime(0);
+      handleChangeTrack(1);
     };
 
     audio.addEventListener('timeupdate', handleTimeUpdate);
@@ -92,39 +102,35 @@ export const MusicPlayer = ({ tracks, albumName, isRevealed }: MusicPlayerProps)
     };
   }, [currentTrackPreview]);
 
-
   const togglePlay = () => {
     if (!audioRef.current) return;
 
-    setIsPlaying((prev) => {
-      const newState = !prev;
-      if (newState) {
-        audioRef.current.play().catch(error => {
+    if (isPlaying) {
+      audioRef.current.pause();
+      setIsPlaying(false);
+    } else {
+      audioRef.current.play()
+        .then(() => setIsPlaying(true))
+        .catch(error => {
           console.log("Error al reproducir:", error);
-          return prev;
+          setIsPlaying(false);
         });
-      } else {
-        audioRef.current?.pause();
-      }
-
-      return newState;
-    });
+    }
   };
 
-  const handleChangeTrack = (direcction: number) => {
+  const handleChangeTrack = (direction: number) => {
     let index = tracks.findIndex(({ id }) => id === currentTrack.id);
-    index = index + direcction;
+    index = index + direction;
     if (index < 0) {
       index = tracks.length - 1;
     } else if (index > tracks.length - 1) {
       index = 0;
     }
-
     setCurrentTrack(tracks[index]);
-  }
-
+  };
 
   const formatTime = (seconds: number) => {
+    if (isNaN(seconds)) return "0:00";
     const mins = Math.floor(seconds / 60);
     const secs = Math.floor(seconds % 60);
     return `${mins}:${secs.toString().padStart(2, '0')}`;
@@ -134,11 +140,12 @@ export const MusicPlayer = ({ tracks, albumName, isRevealed }: MusicPlayerProps)
     setShowVolumeSlider(!showVolumeSlider);
   };
 
-
-
   const handleVolumeChange = (value: number[]) => {
     setVolume(value[0]);
     setIsMuted(false);
+    if (audioRef.current) {
+      audioRef.current.volume = value[0] / 100;
+    }
   };
 
   const handleProgressChange = (value: number[]) => {
@@ -152,25 +159,23 @@ export const MusicPlayer = ({ tracks, albumName, isRevealed }: MusicPlayerProps)
   return (
     <Card className="gradient-card border-border/50 p-4 space-y-3">
       {/* Track Info */}
-      {
-        !isLoading && (
-          <audio ref={audioRef} >
-            <source src={currentTrackPreview?.preview} type='audio/mpeg' />
-          </audio>
-        )
-      }
+      {!isLoading && currentTrackPreview?.preview && (
+        <audio ref={audioRef} preload="metadata">
+          <source src={currentTrackPreview.preview} type='audio/mpeg' />
+        </audio>
+      )}
+
       <div className="text-center space-y-1">
         <h4 className="font-medium text-foreground text-sm">
-          {isRevealed ? currentTrack.title : `Track ${currentTrack.title}`}
+          {currentTrack.title}
         </h4>
         <p className="text-xs text-muted-foreground">
-          {`${albumName}`}
+          {albumName}
         </p>
       </div>
 
       {/* Main Controls Row */}
       <div className="flex items-center justify-center">
-        {/* Center - Transport Controls */}
         <div className="flex items-center gap-2">
           <Button
             variant="ghost"
@@ -186,17 +191,15 @@ export const MusicPlayer = ({ tracks, albumName, isRevealed }: MusicPlayerProps)
             size="sm"
             disabled={isLoading}
             onClick={togglePlay}
-            className="rounded-full h-9 w-9 shadow-glow transition-bounce hover:scale-105"
+            className="rounded-full h-9 w-9 shadow-glow transition-bounce hover:scale-105 disabled:hover:scale-100 disabled:opacity-50"
           >
             {isLoading ? (
               <Loader2 className="h-4 w-4 animate-spin" />
             ) : isPlaying ? (
               <Pause className="h-4 w-4" />
-
             ) : (
               <Play className="h-4 w-4 ml-0.5" />
             )}
-
           </Button>
 
           <Button
@@ -218,13 +221,13 @@ export const MusicPlayer = ({ tracks, albumName, isRevealed }: MusicPlayerProps)
           </span>
           <Slider
             value={[currentTime]}
-            max={audioDuration}
+            max={audioDuration || currentTrack.duration}
             step={1}
             onValueChange={handleProgressChange}
             className="flex-1"
           />
           <span className="text-xs text-muted-foreground w-10 text-right">
-            {formatTime(audioDuration)}
+            {formatTime(audioDuration || currentTrack.duration)}
           </span>
 
           {/* Volume Control */}
@@ -237,7 +240,7 @@ export const MusicPlayer = ({ tracks, albumName, isRevealed }: MusicPlayerProps)
                   step={1}
                   onValueChange={handleVolumeChange}
                   orientation="vertical"
-                  className="h-16 [&>span[role=slider]]:h-3 [&>span[role=slider]]:w-3"
+                  className="h-16"
                 />
               </div>
             )}
@@ -258,7 +261,6 @@ export const MusicPlayer = ({ tracks, albumName, isRevealed }: MusicPlayerProps)
         </div>
       </div>
 
-
       <Accordion className='flex flex-col' type='single' value={playLisStatus}>
         <Button
           variant='link'
@@ -267,7 +269,6 @@ export const MusicPlayer = ({ tracks, albumName, isRevealed }: MusicPlayerProps)
             if (prev === 'playlist') {
               return '';
             }
-
             return 'playlist';
           })}
         >
@@ -277,7 +278,7 @@ export const MusicPlayer = ({ tracks, albumName, isRevealed }: MusicPlayerProps)
           <AccordionContent>
             <div className="space-y-1 max-h-28 overflow-y-auto scrollbar-thin scrollbar-thumb-primary/30 scrollbar-track-transparent 
                 hover:scrollbar-thumb-primary/50">
-              {tracks.map((track, index) => (
+              {tracks.map((track) => (
                 <button
                   key={track.id}
                   onClick={() => setCurrentTrack(track)}
