@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useRef, useEffect, useReducer } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Slider } from '@/components/ui/slider';
@@ -12,10 +12,12 @@ import {
   Loader2
 } from 'lucide-react';
 import { Track } from '@/types/game-request';
-import { Accordion, AccordionContent } from './ui/accordion';
-import { AccordionItem } from '@radix-ui/react-accordion';
 import { useQuery } from '@tanstack/react-query';
 import { fetchTracPreview } from '@/api/game/fetch-track.action';
+import { initPlayerReducer, playerReducer } from '@/reducer/music-player.reducer';
+import { formatTime } from '@/utils/format-time';
+import { TrackList } from './TrackList';
+import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
 
 interface MusicPlayerProps {
   tracks: Track[];
@@ -24,16 +26,20 @@ interface MusicPlayerProps {
 }
 
 export const MusicPlayer = ({ tracks, albumName, isRevealed }: MusicPlayerProps) => {
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [currentTrack, setCurrentTrack] = useState(tracks[0]);
-  const [playLisStatus, setPlayLisStatus] = useState<string>('');
-  const [currentTime, setCurrentTime] = useState(0);
-  const [audioDuration, setAudioDuration] = useState(0);
-  const [volume, setVolume] = useState(75);
-  const [isMuted, setIsMuted] = useState(false);
-  const [showVolumeSlider, setShowVolumeSlider] = useState(false);
+
+
+  const [state, dispatch] = useReducer(playerReducer, initPlayerReducer(tracks[0]));
+  const {
+    currentTrack,
+    isPlaying,
+    audioDuration,
+    currentTime,
+    isMuted,
+    playLisStatus,
+    volume } = state;
+
   const audioRef = useRef<HTMLAudioElement>(null);
-  const wasPlayingRef = useRef(false); // ← Nueva referencia para trackear el estado anterior
+  const wasPlayingRef = useRef(false);
 
   const { data: currentTrackPreview, isLoading } = useQuery({
     queryKey: ['track', { trackId: currentTrack.dreezer_id }],
@@ -42,24 +48,24 @@ export const MusicPlayer = ({ tracks, albumName, isRevealed }: MusicPlayerProps)
     retryDelay: 1000 * 60
   });
 
+
   // Efecto para cambiar de pista
   useEffect(() => {
     if (!audioRef.current || !currentTrackPreview?.preview) return;
 
-    // Guardar el estado de reproducción actual antes de cambiar
     wasPlayingRef.current = isPlaying;
 
     audioRef.current.pause();
     audioRef.current.load();
-    setCurrentTime(0);
+    dispatch({ type: 'SET_CURRENT_TIME', payload: 0 });
 
     const handleLoadedData = () => {
       if (wasPlayingRef.current) {
         audioRef.current?.play()
-          .then(() => setIsPlaying(true))
+          .then(() => dispatch({ type: 'SET_PLAYING', payload: true }))
           .catch(error => {
-            console.log("Error al reproducir automáticamente:", error);
-            setIsPlaying(false);
+            console.log("Error when auto play:", error);
+            dispatch({ type: 'SET_PLAYING', payload: false });
           });
       }
     };
@@ -77,17 +83,17 @@ export const MusicPlayer = ({ tracks, albumName, isRevealed }: MusicPlayerProps)
     if (!audio) return;
 
     const handleTimeUpdate = () => {
-      setCurrentTime(audio.currentTime);
+      dispatch({ type: 'SET_CURRENT_TIME', payload: audio.currentTime });
     };
 
     const handleLoadedMetadata = () => {
       if (!isNaN(audio.duration) && isFinite(audio.duration)) {
-        setAudioDuration(audio.duration);
+        dispatch({ type: 'SET_AUDIO_DURATION', payload: audio.duration });
       }
     };
 
     const handleEnded = () => {
-      setCurrentTime(0);
+      dispatch({ type: 'SET_CURRENT_TIME', payload: 0 });
       handleChangeTrack(1);
     };
 
@@ -102,18 +108,26 @@ export const MusicPlayer = ({ tracks, albumName, isRevealed }: MusicPlayerProps)
     };
   }, [currentTrackPreview]);
 
+  useEffect(() => {
+    if (!audioRef.current) return;
+
+    if (isMuted) {
+      audioRef.current.volume
+    }
+  }, [isMuted])
+
   const togglePlay = () => {
     if (!audioRef.current) return;
 
     if (isPlaying) {
       audioRef.current.pause();
-      setIsPlaying(false);
+      dispatch({ type: 'SET_PLAYING', payload: false });
     } else {
       audioRef.current.play()
-        .then(() => setIsPlaying(true))
+        .then(() => dispatch({ type: 'SET_PLAYING', payload: true }))
         .catch(error => {
           console.log("Error al reproducir:", error);
-          setIsPlaying(false);
+          dispatch({ type: 'SET_PLAYING', payload: false });
         });
     }
   };
@@ -126,23 +140,17 @@ export const MusicPlayer = ({ tracks, albumName, isRevealed }: MusicPlayerProps)
     } else if (index > tracks.length - 1) {
       index = 0;
     }
-    setCurrentTrack(tracks[index]);
+    dispatch({ type: 'SET_TRACK', payload: tracks[index] })
   };
 
-  const formatTime = (seconds: number) => {
-    if (isNaN(seconds)) return "0:00";
-    const mins = Math.floor(seconds / 60);
-    const secs = Math.floor(seconds % 60);
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
-  };
+
 
   const toggleVolumeSlider = () => {
-    setShowVolumeSlider(!showVolumeSlider);
+    dispatch({ type: 'TOGGLE_MUTE' })
   };
 
   const handleVolumeChange = (value: number[]) => {
-    setVolume(value[0]);
-    setIsMuted(false);
+    dispatch({ type: 'SET_VOLUME', payload: value[0] });
     if (audioRef.current) {
       audioRef.current.volume = value[0] / 100;
     }
@@ -151,10 +159,18 @@ export const MusicPlayer = ({ tracks, albumName, isRevealed }: MusicPlayerProps)
   const handleProgressChange = (value: number[]) => {
     if (audioRef.current) {
       const newTime = value[0];
-      setCurrentTime(newTime);
+      dispatch({ type: 'SET_CURRENT_TIME', payload: newTime });
       audioRef.current.currentTime = newTime;
     }
   };
+
+  const handleTrackList = () => {
+    if (playLisStatus === 'playlist') {
+      dispatch({ type: 'SET_PLAYLIST_STATUS', payload: '' })
+      return;
+    }
+    dispatch({ type: 'SET_PLAYLIST_STATUS', payload: 'playlist' })
+  }
 
   return (
     <Card className="gradient-card border-border/50 p-4 space-y-3">
@@ -227,76 +243,60 @@ export const MusicPlayer = ({ tracks, albumName, isRevealed }: MusicPlayerProps)
             className="flex-1"
           />
           <span className="text-xs text-muted-foreground w-10 text-right">
-            {formatTime(audioDuration || currentTrack.duration)}
+            {formatTime(audioDuration)}
           </span>
 
           {/* Volume Control */}
-          <div className="flex flex-col ml-4">
-            {showVolumeSlider && (
-              <div className="bg-background w-4 rounded-md">
+          <div className="relative flex flex-col ml-4 items-center">
+            <Popover>
+              {/* Botón de volumen */}
+              <PopoverTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="hover:text-primary transition-smooth h-6 w-6 p-0"
+                >
+                  {isMuted || volume === 0 ? (
+                    <VolumeX className="h-3 w-3" />
+                  ) : (
+                    <Volume2 className="h-3 w-3" />
+                  )}
+                </Button>
+              </PopoverTrigger>
+
+              {/* Slider flotante */}
+              <PopoverContent
+                side="top"
+                align="center"
+                className="w-auto bg-background p-2 flex justify-center rounded-md shadow-md"
+              >
                 <Slider
                   value={[volume]}
                   max={100}
                   step={1}
                   onValueChange={handleVolumeChange}
                   orientation="vertical"
-                  className="h-16"
+                  className="h-24 justify-center "
+                  thumbClassName='w-5 h-2 cursor-pointer hover:scale-150'
                 />
-              </div>
-            )}
-
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={toggleVolumeSlider}
-              className="hover:text-primary transition-smooth h-6 w-6 p-0"
-            >
-              {isMuted || volume === 0 ? (
-                <VolumeX className="h-3 w-3" />
-              ) : (
-                <Volume2 className="h-3 w-3" />
-              )}
-            </Button>
+              </PopoverContent>
+            </Popover>
           </div>
         </div>
       </div>
-
-      <Accordion className='flex flex-col' type='single' value={playLisStatus}>
-        <Button
-          variant='link'
-          className="text-sm"
-          onClick={() => setPlayLisStatus((prev) => {
-            if (prev === 'playlist') {
-              return '';
-            }
-            return 'playlist';
-          })}
-        >
-          Tracklist
-        </Button>
-        <AccordionItem value='playlist'>
-          <AccordionContent>
-            <div className="space-y-1 max-h-28 overflow-y-auto scrollbar-thin scrollbar-thumb-primary/30 scrollbar-track-transparent 
-                hover:scrollbar-thumb-primary/50">
-              {tracks.map((track) => (
-                <button
-                  key={track.id}
-                  onClick={() => setCurrentTrack(track)}
-                  className={`w-full text-left p-1.5 rounded text-xs transition-smooth ${track.id === currentTrack.id
-                    ? 'bg-primary/10 text-primary border border-primary/20'
-                    : 'hover:bg-muted/50 text-muted-foreground hover:text-foreground'
-                    }`}
-                >
-                  <div className="flex justify-between items-center">
-                    <span className="truncate">{track.title}</span>
-                    <span className="text-xs opacity-70">{formatTime(track.duration)}</span>
-                  </div>
-                </button>
-              ))}
-            </div>
-          </AccordionContent>
-        </AccordionItem>
-      </Accordion>
+      <Button
+        variant='link'
+        className="text-sm"
+        onClick={handleTrackList}
+      >
+        Tracklist
+      </Button>
+      <TrackList
+        currentTrackId={currentTrack.id}
+        dispatch={dispatch}
+        trackListStatus={playLisStatus}
+        tracks={tracks}
+      />
     </Card>
   );
 };
