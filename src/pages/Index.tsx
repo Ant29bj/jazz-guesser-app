@@ -1,31 +1,36 @@
-import { useState } from 'react';
+import { use, useEffect } from 'react';
 import { MusicPlayer } from '@/components/MusicPlayer';
 import { ClueCard } from '@/components/ClueCard';
 import { GuessInput } from '@/components/GuessInput';
 import { ScoreDisplay } from '@/components/ScoreDisplay';
 import { Music, Calendar, Hash, Users, Captions } from 'lucide-react';
-import { useQuery } from '@tanstack/react-query';
-import { fetchRandomAlbumAction } from '@/api/game/fetch-random-album.action';
 import { useFormatSeconds } from '@/hooks/use-formatSeconds';
-
+import { GameContext } from '@/context/GameContext';
+import { cn } from '@/lib/utils';
+import { ArtistList } from '@/components/ArtistList';
+import { LoadingPage } from './LoadingPage';
 
 const JazzGuessApp = () => {
-  const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
-  const [isRevealed, setIsRevealed] = useState(false);
-
-  const { data: album, isLoading } = useQuery({
-    queryKey: ['albumData'],
-    queryFn: fetchRandomAlbumAction,
-    staleTime: 1000 * 60 * 30, // half an hour
-    retryDelay: 1000 * 60 * 1
-  });
-
+  const { gameState } = use(GameContext);
+  const {
+    discoveredArtistId,
+    score,
+    attemps,
+    maxAttempts,
+    isGameOver,
+    albumInfo: album,
+    hiddenAlbumTitle,
+    hiddenArtist } = gameState;
 
   const albumbDuration = useFormatSeconds(album?.duration ?? 0);
 
-  if (isLoading) {
+  useEffect(() => {
+
+  }, [discoveredArtistId]);
+
+  if (!album) {
     return (
-      <p >Loading... </p>
+      <LoadingPage />
     );
   }
 
@@ -39,13 +44,13 @@ const JazzGuessApp = () => {
             Jazz Guesser
           </h1>
           <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-            Can you identify this classic jazz album from the clues? Study the blurred cover and use the hints to make your guess!
+            Can you identify whos playing?
           </p>
         </div>
 
         {/* Score Display */}
         <div className="mb-8">
-          <ScoreDisplay score={0} attempts={0} timeElapsed={0} />
+          <ScoreDisplay score={score} attempts={attemps} maxAttempts={maxAttempts} />
         </div>
 
         <div className="grid lg:grid-cols-2 gap-8 max-w-6xl mx-auto">
@@ -53,7 +58,7 @@ const JazzGuessApp = () => {
           <div className="space-y-6">
             <div className="aspect-square max-w-md mx-auto">
               <img
-                className='blur-lg'
+                className={isGameOver ? '' : cn('blur-xl')}
                 src={album.coverXl}
                 alt={album.title} />
             </div>
@@ -63,7 +68,6 @@ const JazzGuessApp = () => {
               <MusicPlayer
                 tracks={album.tracks}
                 albumName={album.title}
-                isRevealed={isRevealed}
               />
             </div>
           </div>
@@ -77,18 +81,11 @@ const JazzGuessApp = () => {
                   label="Artist"
                   icon={<Users className="h-5 w-5" />}
                 >
-                  <div className='flex flex-wrap gap-2 mt-2'>
-                    {
-                      album.artists.map(({ id, name }) => (
-                        <span
-                          key={id}
-                          className='bg-primary/10 text-primary px-3 py-1 rounded-sm text-sm font-thin border border-primary/20'
-                        >
-                          {name}
-                        </span>
-                      ))
-                    }
-                  </div>
+                  <ArtistList
+                    hiddenArtist={hiddenArtist}
+                    discoveredArtistId={discoveredArtistId}
+                    attempts={attemps}
+                  />
                 </ClueCard>
 
                 <ClueCard
@@ -113,18 +110,14 @@ const JazzGuessApp = () => {
                   label="Album Name"
                   icon={<Captions className="h-5 w-5" />}
                 >
-                  {album.title}
+                  {isGameOver ? album.title : hiddenAlbumTitle}
                 </ClueCard>
               </div>
             </div>
 
             <div>
               <h3 className="text-xl font-semibold mb-4 text-foreground">Your Guess</h3>
-              <GuessInput
-                onGuess={() => console.log('')}
-                isCorrect={isCorrect}
-                isRevealed={isRevealed}
-              />
+              <GuessInput />
             </div>
           </div>
         </div>
