@@ -50,6 +50,11 @@ export const MusicPlayer = ({ tracks }: MusicPlayerProps) => {
     retryDelay: 1000 * 60
   });
 
+  useEffect(() => {
+    if (!audioRef.current) return;
+    audioRef.current.pause();
+    dispatch({ type: 'SET_TRACK', payload: tracks[0] })
+  }, [tracks])
 
   // change track effect
   useEffect(() => {
