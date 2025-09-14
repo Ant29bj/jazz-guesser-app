@@ -1,4 +1,4 @@
-import { useRef, useEffect, useReducer } from 'react';
+import { useRef, useEffect, useReducer, use } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Slider } from '@/components/ui/slider';
@@ -18,17 +18,19 @@ import { initPlayerReducer, playerReducer } from '@/reducer/music-player.reducer
 import { formatTime } from '@/utils/format-time';
 import { TrackList } from './TrackList';
 import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
+import { GameContext } from '@/context/GameContext';
 
 interface MusicPlayerProps {
   tracks: Track[];
   albumName: string;
-  isRevealed: boolean;
 }
 
-export const MusicPlayer = ({ tracks, albumName, isRevealed }: MusicPlayerProps) => {
+export const MusicPlayer = ({ tracks }: MusicPlayerProps) => {
 
 
   const [state, dispatch] = useReducer(playerReducer, initPlayerReducer(tracks[0]));
+  const { gameState } = use(GameContext);
+  const { hiddenAlbumTitle, isGameOver, albumInfo } = gameState;
   const {
     currentTrack,
     isPlaying,
@@ -49,7 +51,7 @@ export const MusicPlayer = ({ tracks, albumName, isRevealed }: MusicPlayerProps)
   });
 
 
-  // Efecto para cambiar de pista
+  // change track effect
   useEffect(() => {
     if (!audioRef.current || !currentTrackPreview?.preview) return;
 
@@ -77,7 +79,7 @@ export const MusicPlayer = ({ tracks, albumName, isRevealed }: MusicPlayerProps)
     };
   }, [currentTrack, currentTrackPreview]);
 
-  // Efecto para eventos del audio
+  // handle audio effects
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio) return;
@@ -144,11 +146,6 @@ export const MusicPlayer = ({ tracks, albumName, isRevealed }: MusicPlayerProps)
   };
 
 
-
-  const toggleVolumeSlider = () => {
-    dispatch({ type: 'TOGGLE_MUTE' })
-  };
-
   const handleVolumeChange = (value: number[]) => {
     dispatch({ type: 'SET_VOLUME', payload: value[0] });
     if (audioRef.current) {
@@ -186,7 +183,7 @@ export const MusicPlayer = ({ tracks, albumName, isRevealed }: MusicPlayerProps)
           {currentTrack.title}
         </h4>
         <p className="text-xs text-muted-foreground">
-          {albumName}
+          {isGameOver ? albumInfo.title : hiddenAlbumTitle}
         </p>
       </div>
 

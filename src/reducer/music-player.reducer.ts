@@ -9,7 +9,7 @@ export function initPlayerReducer(track: Track) {
     playLisStatus: '',
     currentTime: 0,
     audioDuration: 0,
-    volume: 75,
+    volume: 30,
     isMuted: false,
     showVolumeSlider: false,
   };
