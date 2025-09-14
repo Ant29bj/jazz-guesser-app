@@ -44,7 +44,7 @@ const JazzGuessApp = () => {
             Jazz Guesser
           </h1>
           <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-            Can you identify this classic jazz album from the clues? Study the blurred cover and use the hints to make your guess!
+            Can you identify whos playing?
           </p>
         </div>
 
