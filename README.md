@@ -1,73 +1,28 @@
-# Welcome to your Lovable project
+# 🎷 Jazz Guesser Game - Frontend  
 
-## Project info
+**Jazz Guesser Game** es un juego web interactivo donde pondrás a prueba tus conocimientos de jazz adivinando a los músicos detrás de cada álbum.  
+**Jazz Guesser Game** is an interactive web game where you test your jazz knowledge by guessing the musicians behind each album.  
 
-**URL**: https://lovable.dev/projects/86ce721d-2e2b-4ac3-9658-6bf0b929856c
+---
 
-## How can I edit this code?
+## 🚀 Tecnologías / Tech Stack  
 
-There are several ways of editing your application.
+- [Vite](https://vite.dev/) → entorno de desarrollo rápido y moderno / fast and modern development environment.  
+- [React](https://es.react.dev/) → construcción declarativa y eficiente de la interfaz / declarative and efficient UI building.  
+- [shadcn/ui](https://ui.shadcn.com/) → diseño elegante y componentes accesibles listos para usar / elegant and accessible UI components.  
 
-**Use Lovable**
+---
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/86ce721d-2e2b-4ac3-9658-6bf0b929856c) and start prompting.
+## 🎮 Cómo jugar / How to Play  
 
-Changes made via Lovable will be committed automatically to this repo.
+**ES**  
+1. Inicia una partida para recibir un álbum de jazz aleatorio.  
+2. Escribe tu respuesta adivinando el nombre del artista o grupo.  
+3. Gana puntos por cada respuesta correcta.  
+4. ¡Sigue jugando e intenta superar tu mejor puntaje!  
 
-**Use your preferred IDE**
-
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
-
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
-```
-
-**Edit a file directly in GitHub**
-
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
-
-**Use GitHub Codespaces**
-
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
-
-## What technologies are used for this project?
-
-This project is built with:
-
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
-
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/86ce721d-2e2b-4ac3-9658-6bf0b929856c) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+**EN**  
+1. Start a game to receive a random jazz album.  
+2. Type your guess for the artist or band name.  
+3. Earn points for each correct answer.  
+4. Keep playing and try to beat your high score!  
