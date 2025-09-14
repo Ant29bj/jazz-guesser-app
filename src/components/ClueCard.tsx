@@ -18,7 +18,7 @@ export const ClueCard = ({ label, icon, children }: ClueCardProps) => {
         <p className="text-muted-foreground text-sm font-medium">{label}</p>
       </div>
       <div className='mt-4'>
-        <p className="text-foreground font-semibold text-lg">{children}</p>
+        <div className="text-foreground font-semibold text-lg">{children}</div>
       </div>
     </Card>
   );
