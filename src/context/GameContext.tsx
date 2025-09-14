@@ -8,7 +8,7 @@ import { PropsWithChildren } from "react";
 import { createContext } from "react";
 import JSConfetti from 'js-confetti'
 
-const initGame: GameState = {
+export const initGame: GameState = {
   albumInfo: null,
   attemps: 0,
   maxAttempts: 3,
@@ -27,7 +27,8 @@ interface GameContextType extends PropsWithChildren {
   query: UseQueryResult<GameResponse, Error>;
   gameState: GameState;
   // methods
-  checkAnsswer: (guess: string) => void
+  checkAnsswer: (guess: string) => void;
+  restartGame?: (haveWin: boolean) => void;
 }
 
 export const GameContext = createContext({} as GameContextType);
@@ -64,6 +65,16 @@ export function GameContextProvider({ children }: PropsWithChildren) {
           y: window.innerHeight / 2
         }
       });
+    } else if (gameState.isGameOver) {
+      jsConfetti.addConfettiAtPosition({
+        emojis: ['😭'],
+        confettiRadius: 15,
+        confettiNumber: 100,
+        confettiDispatchPosition: {
+          x: window.innerWidth / 2,
+          y: window.innerHeight / 2
+        }
+      });
     }
 
   }, [gameState.isGameOver])
@@ -72,12 +83,21 @@ export function GameContextProvider({ children }: PropsWithChildren) {
     dispatch({ type: 'CHECK_ANSWER', payload: guess });
   }
 
+  const restartGame = async (haveWin: boolean) => {
+
+    dispatch({ type: 'RESTART_GAME', payload: haveWin });
+
+    const data = await query.refetch();
+
+
+  };
 
   return (
     <GameContext value={{
       query,
       gameState,
-      checkAnsswer
+      checkAnsswer,
+      restartGame
     }} >
       {children}
     </GameContext>

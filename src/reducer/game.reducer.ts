@@ -7,6 +7,7 @@ import {
 } from "@/utils/hide-artist";
 import { GameActions } from "./actions/game-reducer.action";
 import { GameState } from "./types/game-state.type";
+import { initGame } from "@/context/GameContext";
 
 
 
@@ -90,6 +91,26 @@ export function gameReducer(state: GameState, action: GameActions): GameState {
         hiddenAlbumTitle,
         numberOfArtist: payload.artists.length,
       }
+    }
+    case 'RESTART_GAME': {
+      const { payload: haveWin } = action;
+
+      if (haveWin) {
+        return {
+          ...state,
+          isGameOver: false,
+          attemps: 0,
+          discoveredArtist: 0,
+          discoveredArtistId: []
+        }
+
+      } else {
+        return {
+          ...initGame
+        }
+      }
+
+
     }
     default:
       break;

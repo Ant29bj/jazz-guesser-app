@@ -1,7 +1,6 @@
 import { use } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Check, X } from 'lucide-react';
 import { useCustomForm } from '@/hooks/use-customForm';
 import { GameContext } from '@/context/GameContext';
 
@@ -19,16 +18,31 @@ export const GuessInput = ({ disabled }: GuessInputProps) => {
     guess: ''
   });
 
-  const { checkAnsswer } = use(GameContext);
+  const { checkAnsswer, gameState, restartGame } = use(GameContext);
+  const { isGameOver, attemps, maxAttempts } = gameState;
 
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (isGameOver) {
+      restartGame(attemps < maxAttempts);
+    }
+
+
     if (guess.length == 0) return;
 
     checkAnsswer(guess);
     onResetForm();
   };
+
+  const handleDisable = () => {
+    if (!isGameOver) {
+      return !guess.trim();
+    }
+
+
+    return !isGameOver;
+  }
 
 
 
@@ -40,7 +54,7 @@ export const GuessInput = ({ disabled }: GuessInputProps) => {
           name='guess'
           onChange={onInputChange}
           placeholder="Enter your guess for the jazz player name..."
-          disabled={disabled}
+          disabled={isGameOver}
           className="bg-card border-border/50 focus:border-primary/50 text-foreground placeholder:text-muted-foreground transition-smooth"
         />
       </div>
@@ -48,11 +62,11 @@ export const GuessInput = ({ disabled }: GuessInputProps) => {
       <Button
         type="submit"
         variant={'secondary'}
-        disabled={!guess.trim()}
         className="w-full transition-bounce"
+        disabled={handleDisable()}
       >
-        Submit Guess
+        {isGameOver ? 'Restart Game' : 'Submit Guess'}
       </Button>
-    </form>
+    </form >
   );
 };

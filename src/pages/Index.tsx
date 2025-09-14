@@ -8,6 +8,7 @@ import { useFormatSeconds } from '@/hooks/use-formatSeconds';
 import { GameContext } from '@/context/GameContext';
 import { cn } from '@/lib/utils';
 import { ArtistList } from '@/components/ArtistList';
+import { LoadingPage } from './LoadingPage';
 
 const JazzGuessApp = () => {
   const { gameState } = use(GameContext);
@@ -29,7 +30,7 @@ const JazzGuessApp = () => {
 
   if (!album) {
     return (
-      <p >Loading... </p>
+      <LoadingPage />
     );
   }
 
