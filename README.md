@@ -3,6 +3,9 @@
 **Jazz Guesser Game** es un juego web interactivo donde pondrás a prueba tus conocimientos de jazz adivinando a los músicos detrás de cada álbum.  
 **Jazz Guesser Game** is an interactive web game where you test your jazz knowledge by guessing the musicians behind each album.  
 
+## Preview
+<img width="1564" height="901" alt="image" src="https://github.com/user-attachments/assets/601566c4-db73-43e0-b248-cfe5f40e2560" />
+
 ---
 
 ## 🚀 Tecnologías / Tech Stack  
