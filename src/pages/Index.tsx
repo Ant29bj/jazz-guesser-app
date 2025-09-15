@@ -74,8 +74,12 @@ const JazzGuessApp = () => {
 
           {/* Clues and Input */}
           <div className="space-y-6">
-            <div>
-              <h3 className="text-xl font-semibold mb-4 text-foreground">Album Clues</h3>
+            <div >
+              <div className='mb-6'>
+                <h3 className="text-xl font-semibold mb-4 text-foreground">Your Guess</h3>
+                <GuessInput />
+              </div>
+              <h3 className="text-xl font-semibold text-foreground">Album Clues</h3>
               <div className="grid gap-4">
                 <ClueCard
                   label="Artist"
@@ -113,11 +117,6 @@ const JazzGuessApp = () => {
                   {isGameOver ? album.title : hiddenAlbumTitle}
                 </ClueCard>
               </div>
-            </div>
-
-            <div>
-              <h3 className="text-xl font-semibold mb-4 text-foreground">Your Guess</h3>
-              <GuessInput />
             </div>
           </div>
         </div>
