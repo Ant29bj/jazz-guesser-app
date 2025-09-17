@@ -7,7 +7,8 @@ interface QueryParams {
 
 export const searchArtistNameAction = async (artistName: string, params: QueryParams): Promise<SearchArtistResponse> => {
 
-  if (artistName === '') {
+  if (artistName === '' || artistName == null || artistName == undefined) {
+    console.log('Not valid')
     return;
   }
 

@@ -22,7 +22,7 @@ export const GuessInput = () => {
     guess: ''
   });
 
-  const debounceSearchTerm = useDebounce(guess, 500);
+  const debounceSearchTerm = useDebounce(guess, 500).trim();
 
   const { data } = useQuery({
     queryKey: ['guess-artist', { guess: debounceSearchTerm }],
