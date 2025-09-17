@@ -45,6 +45,69 @@ export function hideArtistInAlbumTitle(albumTitle: string, artists: Artist[]): s
   return hiddenTitle;
 }
 
+export function revealLettersInAlbumTitleProportional({
+  hiddenTitle,
+  originalTitle,
+  artists,
+  currentAttempt,
+  maxAttempts,
+}: revealLettersInAlbumTitleProportionalParamInterface): string {
+  const hiddenPositions: { idx: number; char: string }[] = [];
+
+  const validArtists = artists.filter(
+    (a) => a?.name && a.name.trim().length > 0 && a.name !== "NaN"
+  );
+
+  for (const artist of validArtists) {
+    const safeName = artist.name.trim();
+
+    const pattern = new RegExp(
+      safeName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"),
+      "gi"
+    );
+
+    let match: RegExpExecArray | null;
+    let lastIndex = -1;
+
+    // Evita loop infinito si regex no avanza
+    while ((match = pattern.exec(originalTitle)) !== null) {
+      if (match.index === lastIndex) break;
+      lastIndex = match.index;
+
+      const startIdx = match.index;
+      const name = match[0];
+
+      for (let i = 0; i < name.length; i++) {
+        const char = name[i];
+        if (char !== " " && hiddenTitle[startIdx + i] === replaceChar) {
+          hiddenPositions.push({ idx: startIdx + i, char });
+        }
+      }
+    }
+  }
+
+  if (hiddenPositions.length === 0) return hiddenTitle;
+
+  const remainingAttempts = Math.max(1, maxAttempts - currentAttempt + 1);
+  const lettersToReveal = Math.ceil(hiddenPositions.length / remainingAttempts);
+
+  const positionsToReveal: typeof hiddenPositions = [];
+  const tempPositions = [...hiddenPositions];
+
+  for (let i = 0; i < lettersToReveal && tempPositions.length > 0; i++) {
+    const idx = Math.floor(Math.random() * tempPositions.length);
+    positionsToReveal.push(tempPositions[idx]);
+    tempPositions.splice(idx, 1);
+  }
+
+  const newTitle = hiddenTitle.split("");
+  positionsToReveal.forEach((pos) => {
+    newTitle[pos.idx] = pos.char;
+  });
+
+  return newTitle.join("");
+}
+
 
 export function revealLettersProportional({
   hiddenArtists,
@@ -153,51 +216,6 @@ export function revealLettersProportional({
   return newHidden;
 }
 
-
-export function revealLettersInAlbumTitleProportional({
-  hiddenTitle,
-  originalTitle,
-  artists,
-  currentAttempt,
-  maxAttempts
-}: revealLettersInAlbumTitleProportionalParamInterface): string {
-  const hiddenPositions: { idx: number; char: string }[] = [];
-
-  artists.forEach(artist => {
-    const pattern = new RegExp(artist.name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
-    let match;
-    while ((match = pattern.exec(originalTitle)) !== null) {
-      const startIdx = match.index;
-      const name = match[0];
-      for (let i = 0; i < name.length; i++) {
-        const char = name[i];
-        if (char !== ' ' && hiddenTitle[startIdx + i] === replaceChar) {
-          hiddenPositions.push({ idx: startIdx + i, char });
-        }
-      }
-    }
-  });
-
-  if (hiddenPositions.length === 0) return hiddenTitle; // todo revelado
-
-  const lettersToReveal = Math.ceil(hiddenPositions.length / (maxAttempts - currentAttempt + 1));
-
-  const positionsToReveal: typeof hiddenPositions = [];
-  const tempPositions = [...hiddenPositions];
-
-  for (let i = 0; i < lettersToReveal && tempPositions.length > 0; i++) {
-    const idx = Math.floor(Math.random() * tempPositions.length);
-    positionsToReveal.push(tempPositions[idx]);
-    tempPositions.splice(idx, 1);
-  }
-
-  const newTitle = hiddenTitle.split('');
-  positionsToReveal.forEach(pos => {
-    newTitle[pos.idx] = pos.char;
-  });
-
-  return newTitle.join('');
-}
 
 export function revealAllOccurrencesOfArtist({
   hiddenArtists,

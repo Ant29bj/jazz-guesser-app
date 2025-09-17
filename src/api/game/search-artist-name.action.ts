@@ -7,7 +7,6 @@ interface QueryParams {
 
 export const searchArtistNameAction = async (artistName: string, params: QueryParams): Promise<SearchArtistResponse> => {
 
-  console.log(`entro con ${artistName}`);
   if (artistName === '') {
     return;
   }

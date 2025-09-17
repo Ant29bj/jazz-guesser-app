@@ -23,6 +23,7 @@ export const GuessInput = () => {
   });
 
   const debounceSearchTerm = useDebounce(guess, 500);
+
   const { data } = useQuery({
     queryKey: ['guess-artist', { guess: debounceSearchTerm }],
     queryFn: () => searchArtistNameAction(debounceSearchTerm, {}),
@@ -39,15 +40,15 @@ export const GuessInput = () => {
     }
 
 
-    if (guess.length == 0) return;
+    if (debounceSearchTerm.length == 0) return;
 
-    checkAnsswer(guess);
+    checkAnsswer(debounceSearchTerm);
     onResetForm();
   };
 
   const handleDisable = () => {
     if (!isGameOver) {
-      return !guess.trim();
+      return !debounceSearchTerm.trim();
     }
     return !isGameOver;
   }

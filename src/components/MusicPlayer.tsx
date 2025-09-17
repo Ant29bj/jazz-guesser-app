@@ -119,7 +119,7 @@ export const MusicPlayer = ({ tracks }: MusicPlayerProps) => {
     if (!audioRef.current) return;
 
     if (isMuted) {
-      audioRef.current.volume
+      audioRef.current.volume = 0;
     }
   }, [isMuted])
 

@@ -1,4 +1,4 @@
-import { use, useEffect } from 'react';
+import { use } from 'react';
 import { MusicPlayer } from '@/components/MusicPlayer';
 import { ClueCard } from '@/components/ClueCard';
 import { GuessInput } from '@/components/GuessInput';
