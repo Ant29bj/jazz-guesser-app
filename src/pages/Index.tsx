@@ -11,7 +11,8 @@ import { ArtistList } from '@/components/ArtistList';
 import { LoadingPage } from './LoadingPage';
 
 const JazzGuessApp = () => {
-  const { gameState } = use(GameContext);
+  const { gameState, query } = use(GameContext);
+  const { isFetching } = query;
   const {
     discoveredArtistId,
     score,
@@ -24,11 +25,8 @@ const JazzGuessApp = () => {
 
   const albumbDuration = useFormatSeconds(album?.duration ?? 0);
 
-  useEffect(() => {
 
-  }, [discoveredArtistId]);
-
-  if (!album) {
+  if (!album || isFetching) {
     return (
       <LoadingPage />
     );

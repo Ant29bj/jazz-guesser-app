@@ -2,7 +2,7 @@ import { fetchRandomAlbumAction } from "@/api/game/fetch-random-album.action";
 import { gameReducer } from "@/reducer/game.reducer";
 import { GameState } from "@/reducer/types/game-state.type";
 import { GameResponse } from "@/types/game-request";
-import { useQuery, UseQueryResult } from "@tanstack/react-query";
+import { QueryClient, useQuery, useQueryClient, UseQueryResult } from "@tanstack/react-query";
 import { useEffect, useReducer } from "react";
 import { PropsWithChildren } from "react";
 import { createContext } from "react";
@@ -37,7 +37,7 @@ export const GameContext = createContext({} as GameContextType);
 export function GameContextProvider({ children }: PropsWithChildren) {
 
   const jsConfetti = new JSConfetti();
-
+  const queryClient = useQueryClient();
   const query = useQuery({
     queryKey: ['albumData'],
     queryFn: fetchRandomAlbumAction,
@@ -87,9 +87,8 @@ export function GameContextProvider({ children }: PropsWithChildren) {
 
     dispatch({ type: 'RESTART_GAME', payload: haveWin });
 
+    queryClient.setQueryData(['albumData'], undefined);
     const data = await query.refetch();
-
-
   };
 
   return (
