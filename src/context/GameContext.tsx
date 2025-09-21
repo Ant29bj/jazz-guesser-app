@@ -8,6 +8,27 @@ import { PropsWithChildren } from "react";
 import { createContext } from "react";
 import JSConfetti from 'js-confetti'
 
+const getMaxScore = () => {
+  const maxScore = localStorage.getItem('maxScore');
+  if (maxScore == null || maxScore == undefined) {
+    localStorage.setItem('maxScore', '0');
+
+    return '0';
+  }
+
+  return maxScore;
+
+}
+
+export const checkMaxScore = (score: number) => {
+  const actualMaxScore = Number(getMaxScore());
+  return actualMaxScore <= score ? score : actualMaxScore;
+}
+
+export const setMaxScore = (score: string) => {
+  localStorage.setItem('maxScore', score);
+}
+
 export const initGame: GameState = {
   albumInfo: null,
   attemps: 0,
@@ -19,7 +40,8 @@ export const initGame: GameState = {
   hiddenArtist: [],
   numberOfArtist: 0,
   discoveredArtist: 0,
-  discoveredArtistId: []
+  discoveredArtistId: [],
+  maxScore: getMaxScore()
 }
 
 interface GameContextType extends PropsWithChildren {
@@ -79,6 +101,14 @@ export function GameContextProvider({ children }: PropsWithChildren) {
 
   }, [gameState.isGameOver])
 
+  useEffect(() => {
+    const { score } = gameState;
+    const newMaxScore = checkMaxScore(score).toString();
+    setMaxScore(newMaxScore);
+
+    dispatch({ type: 'SET_MAXSCORE', payload: newMaxScore });
+  }, [gameState.score]);
+
   const checkAnsswer = (guess: string) => {
     dispatch({ type: 'CHECK_ANSWER', payload: guess });
   }
@@ -88,7 +118,7 @@ export function GameContextProvider({ children }: PropsWithChildren) {
     dispatch({ type: 'RESTART_GAME', payload: haveWin });
 
     queryClient.setQueryData(['albumData'], undefined);
-    const data = await query.refetch();
+    await query.refetch();
   };
 
   return (

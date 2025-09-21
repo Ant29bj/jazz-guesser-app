@@ -12,5 +12,6 @@ export interface GameState {
   numberOfArtist: number;
   discoveredArtist: number;
   discoveredArtistId?: number[];
+  maxScore: string;
 
 }

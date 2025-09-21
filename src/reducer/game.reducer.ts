@@ -112,6 +112,13 @@ export function gameReducer(state: GameState, action: GameActions): GameState {
 
 
     }
+    case "SET_MAXSCORE": {
+      const { payload: maxScore } = action
+      return {
+        ...state,
+        maxScore
+      }
+    }
     default:
       break;
   }

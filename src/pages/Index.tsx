@@ -21,7 +21,8 @@ const JazzGuessApp = () => {
     isGameOver,
     albumInfo: album,
     hiddenAlbumTitle,
-    hiddenArtist } = gameState;
+    hiddenArtist,
+    maxScore } = gameState;
 
   const albumbDuration = useFormatSeconds(album?.duration ?? 0);
 
@@ -48,7 +49,7 @@ const JazzGuessApp = () => {
 
         {/* Score Display */}
         <div className="mb-8">
-          <ScoreDisplay score={score} attempts={attemps} maxAttempts={maxAttempts} />
+          <ScoreDisplay score={score} attempts={attemps} maxAttempts={maxAttempts} personalRecord={maxScore} />
         </div>
 
         <div className="grid lg:grid-cols-2 gap-8 max-w-6xl mx-auto">
