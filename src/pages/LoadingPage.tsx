@@ -14,7 +14,6 @@ export function LoadingPage() {
     setCurrentGif(gifUrls[randomIndex]);
   };
 
-  // Cambiar de GIF cada 5 segundos
   useEffect(() => {
     selectRandomGif();
   }, []);

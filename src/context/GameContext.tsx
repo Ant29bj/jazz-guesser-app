@@ -2,7 +2,7 @@ import { fetchRandomAlbumAction } from "@/api/game/fetch-random-album.action";
 import { gameReducer } from "@/reducer/game.reducer";
 import { GameState } from "@/reducer/types/game-state.type";
 import { GameResponse } from "@/types/game-request";
-import { QueryClient, useQuery, useQueryClient, UseQueryResult } from "@tanstack/react-query";
+import { useQuery, useQueryClient, UseQueryResult } from "@tanstack/react-query";
 import { useEffect, useReducer } from "react";
 import { PropsWithChildren } from "react";
 import { createContext } from "react";

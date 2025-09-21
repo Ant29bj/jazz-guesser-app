@@ -64,6 +64,7 @@ export const MusicPlayer = ({ tracks }: MusicPlayerProps) => {
 
     audioRef.current.pause();
     audioRef.current.load();
+    audioRef.current.volume = volume / 100;
     dispatch({ type: 'SET_CURRENT_TIME', payload: 0 });
 
     const handleLoadedData = () => {
