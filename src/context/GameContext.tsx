@@ -32,7 +32,7 @@ export const setMaxScore = (score: string) => {
 export const initGame: GameState = {
   albumInfo: null,
   attemps: 0,
-  maxAttempts: 3,
+  maxAttempts: 5,
   score: 0,
   guess: '',
   isGameOver: false,
